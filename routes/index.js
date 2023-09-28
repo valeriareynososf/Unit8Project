@@ -24,33 +24,33 @@ router.get('/', asyncHandler(async (req, res) => {
 /* GET /books Shows the full list of books */
 router.get('/books', asyncHandler(async (req, res) => {
   const books = await Book.findAll();
-  res.render('books', { index, title: 'Books' });
+  res.render('index', { books, title: 'Books' });
 }));
 
 
 /* GET /books/new Shows the create new book form */
-router.get('/books', asyncHandler(async (req, res) => {
-  res.render('new-book', { book: {}, title: 'New Book' });
+router.get('/books/new', asyncHandler(async (req, res) => {
+  res.render('new-book', { book: {}, title: 'Create New Book' });
 }));
 
 /* POST /books/new Posts a new book to the database */
-router.get('/books', asyncHandler(async (req, res) => {
+router.post('/books/new', asyncHandler(async (req, res) => {
   res.render('new-book', { book: {}, title: 'New Book' });
 }));
 
 /* GET /books/:id Shows book detail form */
-router.get('/books', asyncHandler(async (req, res) => {
-  res.render('new-book', { book: {}, title: 'New Book' });
+router.get('/books/:id', asyncHandler(async (req, res) => {
+  res.render('index', { book: {}, title: 'New Book' });
 }));
 
 
 /* POST /books/:id Updates book info in the database */
-router.get('/books', asyncHandler(async (req, res) => {
-  res.render('new-book', { book: {}, title: 'New Book' });
+router.post('/books/:id', asyncHandler(async (req, res) => {
+  res.render('index', { book: {}, title: 'New Book' });
 }));
 
 /* POST /books/:id/delete Deletes a book */
-router.get('/books', asyncHandler(async (req, res) => {
+router.post('/books/:id/delete', asyncHandler(async (req, res) => {
   res.render('new-book', { book: {}, title: 'New Book' });
 }));
 
