@@ -8,9 +8,9 @@ function asyncHandler(cb) {
     try {
       await cb(req, res, next)
     } catch (err) {
-      console.log("catch",err)
       //res.render("error", {err: err});
-      res.status(500).send(err)
+      next(err)
+      //res.status(500).send(err)
     }
   }
 }
@@ -40,7 +40,7 @@ router.post('/books/new', asyncHandler(async (req, res) => {
     book = await Book.create(req.body);
     res.redirect('/books')
   } catch (error) {
-    if (error === "SequelizeValidationError") {
+    if (error.name === "SequelizeValidationError") {
       book = await Book.build(req.body);
       res.render('new-book', { book, errors: error.errors, title: "Create New Book" })
     } else {
@@ -52,7 +52,14 @@ router.post('/books/new', asyncHandler(async (req, res) => {
 /* GET /books/:id Shows book detail form */
 router.get('/books/:id', asyncHandler(async (req, res) => {
   const book = await Book.findByPk(req.params.id);
-  res.render('update-book', { book, title: book.title });
+  if (book) {
+    res.render('update-book', { book, title: book.title });
+  } else {
+    const err = new Error(`Oops! The page you're looking for does not exist.`);
+    err.status = 404;
+    res.render('page-not-found', { title: 'Page Not Found', err })
+  }
+
 }));
 
 
@@ -64,23 +71,16 @@ router.post('/books/:id', asyncHandler(async (req, res) => {
     await book.update(req.body);
     res.redirect('/books')
   } catch (error) {
-    if (error === "SequelizeValidationError") {
+    if (error.name === "SequelizeValidationError") {
       book = await Book.build(req.body);
       book.id = req.params.id;
-      res.render('update-book', { book, errors: error.errors, title: book.title })
+      res.render('update-book', { book, errors: error.errors, title: "Update Book" })
     } else {
       throw error;
     }
   }
 
 }));
-
-/* GET /books/:id/delete to Delete a book */
-router.post('/books/:id/delete', asyncHandler(async (req, res) => {
-  const book = await Book.findByPk(req.params.id);
-  res.render('/books' + book.id + '/delete', { book });
-}));
-
 
 /* POST /books/:id/delete Deletes a book */
 router.post('/books/:id/delete', asyncHandler(async (req, res) => {
