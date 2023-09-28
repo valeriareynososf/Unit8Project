@@ -9,8 +9,8 @@ function asyncHandler(cb) {
       await cb(req, res, next)
     } catch (err) {
       console.log("catch",err)
-      res.render("error", {err: err});
-      //res.status(500).send(err)
+      //res.render("error", {err: err});
+      res.status(500).send(err)
     }
   }
 }
@@ -33,31 +33,61 @@ router.get('/books/new', asyncHandler(async (req, res) => {
   res.render('new-book', { book: {}, title: 'Create New Book' });
 }));
 
-/* POST /books/new Posts a new book to the database */
+/* POST /books/new Creates a new book to the database */
 router.post('/books/new', asyncHandler(async (req, res) => {
-  res.render('new-book', { book: {}, title: 'New Book' });
+  let book;
+  try {
+    book = await Book.create(req.body);
+    res.redirect('/books')
+  } catch (error) {
+    if (error === "SequelizeValidationError") {
+      book = await Book.build(req.body);
+      res.render('new-book', { book, errors: error.errors, title: "Create New Book" })
+    } else {
+      throw error;
+    }
+  }
 }));
 
 /* GET /books/:id Shows book detail form */
 router.get('/books/:id', asyncHandler(async (req, res) => {
-  res.render('index', { book: {}, title: 'New Book' });
+  const book = await Book.findByPk(req.params.id);
+  res.render('update-book', { book, title: book.title });
 }));
 
 
 /* POST /books/:id Updates book info in the database */
 router.post('/books/:id', asyncHandler(async (req, res) => {
-  res.render('index', { book: {}, title: 'New Book' });
+  let book;
+  try {
+    book = await Book.findByPk(req.params.id);
+    await book.update(req.body);
+    res.redirect('/books')
+  } catch (error) {
+    if (error === "SequelizeValidationError") {
+      book = await Book.build(req.body);
+      book.id = req.params.id;
+      res.render('update-book', { book, errors: error.errors, title: book.title })
+    } else {
+      throw error;
+    }
+  }
+
 }));
+
+/* GET /books/:id/delete to Delete a book */
+router.post('/books/:id/delete', asyncHandler(async (req, res) => {
+  const book = await Book.findByPk(req.params.id);
+  res.render('/books' + book.id + '/delete', { book });
+}));
+
 
 /* POST /books/:id/delete Deletes a book */
 router.post('/books/:id/delete', asyncHandler(async (req, res) => {
-  res.render('new-book', { book: {}, title: 'New Book' });
+  const book = await Book.findByPk(req.params.id);
+  await book.destroy();
+  res.redirect('/books');
 }));
-
-/* GET home page. */
-// router.get('/', function (req, res, next) {
-//   res.render('index', { title: 'Express' });
-// });
 
 // 404 handler
 router.use((req, res, next) => {
